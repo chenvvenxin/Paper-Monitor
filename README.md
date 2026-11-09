@@ -8,6 +8,14 @@
 
 ---
 
+## 🖼️ 系统预览
+
+| 论文进度追踪界面 | 感兴趣期刊库界面 |
+| :---: | :---: |
+| ![论文进度追踪](https://raw.githubusercontent.com/chenvvenxin/Paper-Monitor/main/fig/paper.png) | ![感兴趣期刊库](https://raw.githubusercontent.com/chenvvenxin/Paper-Monitor/main/fig/journal.png) |
+
+---
+
 ## ✨ 核心特性
 
 - 🚀 **零后端依赖**：纯前端 HTML +原生 JavaScript 实现，无需配置服务器或数据库，双击即可本地运行，完美适配 GitHub Pages 托管。
