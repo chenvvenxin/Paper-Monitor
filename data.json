@@ -1,0 +1,94 @@
+{
+  "papers": [
+    {
+      "id": "demo_paper_01",
+      "title": "Deep Learning Framework",
+      "journal": "Nature Machine Intelligence",
+      "type": "期刊",
+      "status": "Under Review",
+      "authorRole": "第一作者",
+      "authors": "Zhang, San; Wang, Ling; Chen, Wei*",
+      "submitDate": "2026-02-15",
+      "notes": "一审中，已分配 3 位审稿专家。",
+      "rounds": [
+        {
+          "roundNum": 1,
+          "journal": "Nature Machine Intelligence",
+          "history": [
+            {
+              "id": "h_01",
+              "date": "2026-02-15",
+              "status": "Submitted",
+              "note": "完成初稿提交与格式检查"
+            },
+            {
+              "id": "h_02",
+              "date": "2026-02-20",
+              "status": "With Editor",
+              "note": "主编完成初步审查并分配副主编"
+            },
+            {
+              "id": "h_03",
+              "date": "2026-03-05",
+              "status": "Under Review",
+              "note": "外审邀请已发出，进入评审期"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "demo_paper_02",
+      "title": "Robust 3D Surface Reconstruction",
+      "journal": "Computers in Biology and Medicine",
+      "type": "期刊",
+      "status": "Major Revision",
+      "authorRole": "通讯作者",
+      "authors": "Li, Si; Zhang, San*",
+      "submitDate": "2026-01-10",
+      "notes": "收到一审大修意见，给出了 6 周修改期限，需补充消融实验。",
+      "rounds": [
+        {
+          "roundNum": 1,
+          "journal": "Computers in Biology and Medicine",
+          "history": [
+            {
+              "id": "h_10",
+              "date": "2026-01-10",
+              "status": "Submitted",
+              "note": "稿件投递"
+            },
+            {
+              "id": "h_11",
+              "date": "2026-02-28",
+              "status": "Major Revision",
+              "note": "收到审稿意见：两位审稿人评价正面，要求补充泛化性对比实验"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "targetJournals": [
+    {
+      "id": "demo_j_02",
+      "name": "Computers in Biology and Medicine",
+      "publisher": "Elsevier",
+      "jcr": "Q1",
+      "cas": "2区",
+      "isOA": "混合",
+      "allowDualCorr": "允许",
+      "notes": "审稿速度相对适中，偏向生物医学工程、计算机辅助手术及计算模型应用。"
+    },
+    {
+      "id": "demo_j_03",
+      "name": "Nature Machine Intelligence",
+      "publisher": "Springer Nature",
+      "jcr": "Q1",
+      "cas": "1区",
+      "isOA": "混合",
+      "allowDualCorr": "允许",
+      "notes": "人工智能顶刊，对方法论的颠覆性以及多场景交叉应用有极高标准。"
+    }
+  ]
+}

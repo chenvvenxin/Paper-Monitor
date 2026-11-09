@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper & Journal Progress Tracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; min-height: 100vh; padding: 20px; }
+        .max-w { max-width: 1100px; margin: 0 auto; }
+        header { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; }
+        @media(min-width: 768px) { header { flex-direction: row; align-items: center; } }
+        h1 { font-size: 22px; font-weight: bold; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        button, label.btn { padding: 8px 14px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #334155; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        button:hover, label.btn:hover { background: #f1f5f9; }
+        button.primary { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+        button.primary:hover { background: #4338ca; }
+        .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; justify-content: space-between; align-items: center; }
+        .tab-left { display: flex; gap: 10px; }
+        .tab-btn { padding: 10px 18px; font-size: 14px; font-weight: 600; color: #64748b; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 0; cursor: pointer; }
+        .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+        .filter-box { background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+        @media(min-width: 768px) { .filter-box { flex-direction: row; justify-content: space-between; align-items: center; } }
+        input[type="text"], select, textarea { padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; background: #fff; }
+        input[type="text"]:focus, select:focus, textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+        .search-input { flex: 1; }
+        .filters { display: flex; gap: 10px; }
+        
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: 0.2s; }
+        .card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
+        .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; border: 1px solid transparent; }
+        .badge-status { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+        .badge-role { background: #fae8ff; color: #86198f; border-color: #f5d0fe; }
+        .badge-type { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .badge-tag { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+        .badge-pub { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+        .badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .badge-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+        .card-title { font-size: 16px; font-weight: bold; color: #0f172a; line-height: 1.4; }
+        .card-journal { font-size: 13px; color: #4f46e5; font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+        .card-actions { display: flex; gap: 6px; }
+        .icon-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; border-radius: 4px; }
+        .icon-btn:hover { color: #334155; background: #f1f5f9; }
+        .icon-btn.danger:hover { color: #e11d48; background: #ffe4e6; }
+        .card-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; font-size: 13px; }
+        @media(min-width: 768px) { .card-grid { grid-template-columns: 1fr 1fr; } }
+        
+        .journals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .journal-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: 0.2s; }
+        .journal-card:hover { box-shadow: 0 4px 10px -1px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .journal-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .journal-title { font-size: 15px; font-weight: bold; color: #0f172a; line-height: 1.35; }
+        
+        .rounds-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+        .round-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .round-header { font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+        .timeline-item { display: flex; font-size: 12px; gap: 12px; margin-bottom: 4px; align-items: flex-start; }
+        .timeline-date { color: #94a3b8; font-family: monospace; width: 80px; flex-shrink: 0; }
+        .timeline-status { font-weight: 600; color: #334155; width: 110px; flex-shrink: 0; }
+        .timeline-note { color: #64748b; flex: 1; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; padding: 15px; z-index: 1000; }
+        .modal { background: #fff; width: 100%; max-width: 650px; border-radius: 12px; padding: 25px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .author-box, .resubmit-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+        .resubmit-box { border-color: #c7d2fe; background: #eef2ff; }
+        .author-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .chip { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; font-size: 11px; padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .chip:hover { background: #c7d2fe; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 20px; }
+        .empty-state { text-align: center; padding: 50px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; color: #94a3b8; grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+
+<div class="max-w" id="app"></div>
+
+<script>
+    const STATUS_OPTIONS = ["Draft", "Submitted", "With Editor", "Under Review", "Major Revision", "Minor Revision", "Accepted", "Rejected", "Published"];
+    const AUTHOR_ROLES = ["第一作者", "通讯作者", "共同一作", "第二作者", "独立作者", "其他"];
+    const PUBLISHERS = ["", "IEEE", "Elsevier", "Springer Nature", "Wiley", "Taylor & Francis", "SAGE", "MDPI", "Frontiers", "ACM", "IOP", "其他"];
+
+    let activeTab = "papers";
+    let papers = [];
+    let targetJournals = [];
+
+    let searchTerm = "";
+    let statusFilter = "ALL";
+    let roleFilter = "ALL";
+    let currentModal = null; 
+    let activePaperId = null;
+    let activeJournalId = null;
+
+    // 页面加载时：自动尝试加载同目录下的 papers_data.json
+    window.addEventListener('DOMContentLoaded', () => {
+        fetch('papers_data.json')
+            .then(response => {
+                if (!response.ok) throw new Error("No external json found");
+                return response.json();
+            })
+            .then(data => {
+                if (Array.isArray(data)) {
+                    papers = data;
+                } else if (data.papers) {
+                    papers = data.papers || [];
+                    targetJournals = data.targetJournals || [];
+                }
+                render();
+            })
+            .catch(() => {
+                render();
+            });
+    });
+
+    function render() {
+        let html = `
+            <header>
+                <div>
+                    <h1>论文进度追踪系统</h1>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 3px;">多轮转投跟踪 & 感兴趣期刊库管理</p>
+                </div>
+                <div class="btn-group">
+                    <button onclick="exportJSON()">📥 下载备份 JSON</button>
+                    <label class="btn">
+                        📤 导入备份
+                        <input type="file" accept=".json" onchange="importJSON(event)" style="display:none;">
+                    </label>
+                </div>
+            </header>
+
+            <div class="tab-nav">
+                <div class="tab-left">
+                    <button class="tab-btn ${activeTab==='papers'?'active':''}" onclick="activeTab='papers'; render();">我的论文进度 (${papers.length})</button>
+                    <button class="tab-btn ${activeTab==='journals'?'active':''}" onclick="activeTab='journals'; render();">感兴趣期刊库 (${targetJournals.length})</button>
+                </div>
+                <div>
+                    ${activeTab === 'papers' 
+                        ? `<button class="primary" onclick="openModal('add')">＋ 新增论文</button>`
+                        : `<button class="primary" onclick="openModal('addJournal')">＋ 新增期刊</button>`
+                    }
+                </div>
+            </div>
+        `;
+
+        if (activeTab === 'papers') {
+            html += renderPapersView();
+        } else {
+            html += renderJournalsView();
+        }
+
+        if (currentModal === 'add' || currentModal === 'edit') html += renderPaperModal();
+        if (currentModal === 'addJournal' || currentModal === 'editJournal') html += renderJournalModal();
+        if (currentModal === 'history') html += renderHistoryModal();
+
+        document.getElementById('app').innerHTML = html;
+    }
+
+    function exportJSON() {
+        const fullBackup = { papers, targetJournals };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `papers_data.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+        const fileReader = new FileReader();
+        if (event.target.files[0]) {
+            fileReader.readAsText(event.target.files[0], "UTF-8");
+            fileReader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (Array.isArray(parsed)) {
+                        papers = parsed;
+                    } else if (parsed.papers) {
+                        papers = parsed.papers || [];
+                        targetJournals = parsed.targetJournals || [];
+                    }
+                    render();
+                    alert("数据导入成功！");
+                } catch (err) {
+                    alert("解析 JSON 失败。");
+                }
+            }
+        }
+    }
+
+    function deletePaper(id) {
+        if (confirm("确定要删除这篇论文吗？")) {
+            papers = papers.filter(p => p.id !== id);
+            render();
+        }
+    }
+
+    function deleteJournal(id) {
+        if (confirm("确定要删除该期刊记录吗？")) {
+            targetJournals = targetJournals.filter(j => j.id !== id);
+            render();
+        }
+    }
+
+    function selectJournalForForm(journalName) {
+        const input = document.getElementById('journal_input');
+        if (input) input.value = journalName;
+    }
+
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = {
+            title: form.title.value,
+            journal: form.journal.value,
+            type: form.type.value,
+            status: form.status.value,
+            authorRole: form.authorRole.value,
+            authors: form.authors ? form.authors.value : '',
+            submitDate: form.submitDate ? form.submitDate.value : '',
+            notes: form.notes.value
+        };
+
+        if (activePaperId) {
+            papers = papers.map(p => {
+                if (p.id === activePaperId) {
+                    let rounds = p.rounds || [];
+                    if (rounds.length === 0) {
+                        rounds = [{ roundNum: 1, journal: formData.journal, history: [{ id: Date.now().toString(), date: formData.submitDate || new Date().toISOString().slice(0,10), status: formData.status, note: "创建记录" }] }];
+                    } else {
+                        // 同步更新当前最新一轮的期刊名称
+                        rounds[rounds.length - 1].journal = formData.journal;
+                    }
+                    return { ...p, ...formData, rounds };
+                }
+                return p;
+            });
+        } else {
+            const newPaper = {
+                ...formData,
+                id: Date.now().toString(),
+                rounds: [
+                    {
+                        roundNum: 1,
+                        journal: formData.journal,
+                        history: [
+                            { id: Date.now().toString(), date: formData.submitDate || new Date().toISOString().slice(0,10), status: formData.status, note: `初次投递至 ${formData.journal}` }
+                        ]
+                    }
+                ]
+            };
+            papers = [newPaper, ...papers];
+        }
+        closeModal();
+        render();
+    }
+
+    function handleJournalFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const jData = {
+            name: form.jName.value,
+            publisher: form.jPublisher.value,
+            jcr: form.jcr.value,
+            cas: form.cas.value,
+            isOA: form.isOA.value,
+            allowDualCorr: form.allowDualCorr.value,
+            notes: form.jNotes.value
+        };
+
+        if (activeJournalId) {
+            targetJournals = targetJournals.map(j => j.id === activeJournalId ? { ...j, ...jData } : j);
+        } else {
+            targetJournals = [{ ...jData, id: Date.now().toString() }, ...targetJournals];
+        }
+        closeModal();
+        render();
+    }
+
+    function handleHistorySubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const newStatus = form.hStatus.value;
+        const date = form.hDate.value;
+        const note = form.hNote.value.trim() || `状态更新为：${newStatus}`;
+        const isResubmit = form.isResubmit ? form.isResubmit.checked : false;
+        const newJournal = form.newJournal ? form.newJournal.value.trim() : "";
+
+        const entry = { id: Date.now().toString(), date, status: newStatus, note };
+
+        papers = papers.map(p => {
+            if (p.id === activePaperId) {
+                let rounds = [...(p.rounds || [])];
+                if (rounds.length === 0) {
+                    rounds.push({ roundNum: 1, journal: p.journal, history: [] });
+                }
+
+                rounds[rounds.length - 1].history.unshift(entry);
+
+                let updatedJournal = p.journal;
+                let finalStatus = newStatus;
+
+                if (isResubmit && newJournal) {
+                    updatedJournal = newJournal;
+                    finalStatus = "Submitted";
+                    rounds.push({
+                        roundNum: rounds.length + 1,
+                        journal: newJournal,
+                        history: [{ id: (Date.now() + 1).toString(), date, status: "Submitted", note: `转投至新期刊 (前序说明: ${note})` }]
+                    });
+                }
+
+                return {
+                    ...p,
+                    journal: updatedJournal,
+                    status: finalStatus,
+                    notes: isResubmit ? `转投 ${newJournal}。说明：${note}` : (form.hNote.value.trim() ? note : p.notes),
+                    rounds: rounds
+                };
+            }
+            return p;
+        });
+
+        closeModal();
+        render();
+    }
+
+    function openModal(type, id = null) {
+        currentModal = type;
+        if (type === 'editJournal') activeJournalId = id;
+        else activePaperId = id;
+        render();
+    }
+
+    function closeModal() {
+        currentModal = null;
+        activePaperId = null;
+        activeJournalId = null;
+        render();
+    }
+
+    function renderPapersView() {
+        const filtered = papers.filter(p => {
+            const matchSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                p.journal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (p.authors && p.authors.toLowerCase().includes(searchTerm.toLowerCase()));
+            const matchStatus = statusFilter === "ALL" || p.status === statusFilter;
+            const matchRole = roleFilter === "ALL" || p.authorRole === roleFilter;
+            return matchSearch && matchStatus && matchRole;
+        });
+
+        let h = `
+            <div class="filter-box">
+                <input type="text" class="search-input" placeholder="搜索论文题目、期刊或作者..." value="${searchTerm}" oninput="searchTerm=this.value; render();">
+                <div class="filters">
+                    <select onchange="roleFilter=this.value; render();">
+                        <option value="ALL">所有作者位次</option>
+                        ${AUTHOR_ROLES.map(r => `<option value="${r}" ${roleFilter===r?'selected':''}>${r}</option>`).join('')}
+                    </select>
+                    <select onchange="statusFilter=this.value; render();">
+                        <option value="ALL">所有状态</option>
+                        ${STATUS_OPTIONS.map(s => `<option value="${s}" ${statusFilter===s?'selected':''}>${s}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            <div class="paper-list">
+        `;
+
+        if (filtered.length === 0) {
+            h += `<div class="empty-state">暂无论文记录。如果同目录下有 papers_data.json 会自动加载，或者点击右上角新增/导入。</div>`;
+        } else {
+            filtered.forEach(p => {
+                h += `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="badges">
+                                    <span class="badge badge-status">${p.status}</span>
+                                    <span class="badge badge-role">${p.authorRole || '未设置位次'}</span>
+                                    <span class="badge badge-type">${p.type || '期刊'}</span>
+                                </div>
+                                <div class="card-title">${p.title}</div>
+                                <div class="card-journal">
+                                    <span>📖 当前目标期刊/会议：</span><strong>${p.journal}</strong>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn" style="padding: 5px 10px; font-size:12px; color:#4f46e5; border-color:#c7d2fe; background:#e0e7ff;" onclick="openModal('history', '${p.id}')">+ 更新进度/转投</button>
+                                <button class="icon-btn" onclick="openModal('edit', '${p.id}')" title="编辑">✏️</button>
+                                <button class="icon-btn danger" onclick="deletePaper('${p.id}')" title="删除">🗑️</button>
+                            </div>
+                        </div>
+
+                        <div class="card-grid">
+                            <div><strong style="color:#94a3b8;">所有作者：</strong> ${p.authors || '未填写'}</div>
+                            <div><strong style="color:#94a3b8;">初次投稿日期：</strong> ${p.submitDate || '未设定'}</div>
+                        </div>
+
+                        ${p.notes ? `<div style="margin-top:10px; font-size:12px; background:#f8fafc; padding:8px; border-radius:6px; color:#475569;"><strong>最新进展/备注：</strong>${p.notes}</div>` : ''}
+
+                        ${p.rounds && p.rounds.length > 0 ? `
+                            <div class="rounds-container">
+                                <div style="font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">投稿轮次与评审轨迹追踪</div>
+                                ${p.rounds.map(round => `
+                                    <div class="round-box">
+                                        <div class="round-header">
+                                            <span>Round ${round.roundNum}：${round.journal}</span>
+                                            <span style="color:#64748b; font-weight:normal;">共 ${round.history.length} 个节点</span>
+                                        </div>
+                                        ${round.history.map(item => `
+                                            <div class="timeline-item">
+                                                <span class="timeline-date">${item.date}</span>
+                                                <span class="timeline-status">${item.status}</span>
+                                                <span class="timeline-note">${item.note || ''}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        }
+        h += `</div>`;
+        return h;
+    }
+
+    function renderJournalsView() {
+        let h = `<div class="journals-grid">`;
+        if (targetJournals.length === 0) {
+            h += `<div class="empty-state">暂无感兴趣的期刊记录。</div>`;
+        } else {
+            targetJournals.forEach(j => {
+                h += `
+                    <div class="journal-card">
+                        <div>
+                            <div class="journal-card-header">
+                                <div class="journal-title">${j.name || '未命名期刊'}</div>
+                                <div class="card-actions" style="margin-top:-4px;">
+                                    <button class="icon-btn" onclick="openModal('editJournal', '${j.id}')" title="编辑">✏️</button>
+                                    <button class="icon-btn danger" onclick="deleteJournal('${j.id}')" title="删除">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="badge-container">
+                                <div class="badge-row">
+                                    ${j.jcr ? `<span class="badge badge-tag">JCR ${j.jcr}</span>` : ''}
+                                    ${j.cas ? `<span class="badge badge-tag">中科院 ${j.cas}</span>` : ''}
+                                    ${j.publisher ? `<span class="badge badge-pub">${j.publisher}</span>` : ''}
+                                </div>
+                                <div class="badge-row">
+                                    ${j.isOA ? `<span class="badge badge-type">OA: ${j.isOA}</span>` : ''}
+                                    ${j.allowDualCorr ? `<span class="badge badge-role">双通讯: ${j.allowDualCorr}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        ${j.notes ? `<div style="margin-top:8px; font-size:12px; background:#f8fafc; padding:8px; border-radius:6px; color:#475569; border: 1px solid #f1f5f9;"><strong>备注/经验：</strong>${j.notes}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+        h += `</div>`;
+        return h;
+    }
+
+    function renderPaperModal() {
+        const paper = currentModal === 'edit' ? papers.find(p => p.id === activePaperId) : {};
+        return `
+            <div class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>${currentModal === 'edit' ? '编辑论文信息' : '新增论文记录'}</h3>
+                        <button class="icon-btn" onclick="closeModal()">✕</button>
+                    </div>
+                    <form onsubmit="handleFormSubmit(event)">
+                        <div class="form-group">
+                            <label>论文题目</label>
+                            <input type="text" name="title" value="${paper.title || ''}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>当前目标期刊 / 会议名称</label>
+                                <input type="text" id="journal_input" name="journal" value="${paper.journal || ''}">
+                                ${targetJournals.length > 0 ? `
+                                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">从感兴趣期刊库快捷点选：</div>
+                                    <div class="author-chips">
+                                        ${targetJournals.map(j => `<span class="chip" onclick="selectJournalForForm('${j.name}')">📖 ${j.name}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="form-group">
+                                <label>论文类型</label>
+                                <select name="type">
+                                    <option value="期刊" ${paper.type==='期刊'?'selected':''}>期刊 (Journal)</option>
+                                    <option value="会议" ${paper.type==='会议'?'selected':''}>会议 (Conference)</option>
+                                    <option value="预印本" ${paper.type==='预印本'?'selected':''}>预印本 (ArXiv/Preprint)</option>
+                                    <option value="专利" ${paper.type==='专利'?'selected':''}>专利 (Patent)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="author-box">
+                            <div class="form-row">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>我的作者位次</label>
+                                    <select name="authorRole">
+                                        <option value="">(请选择)</option>
+                                        ${AUTHOR_ROLES.map(r => `<option value="${r}" ${paper.authorRole===r?'selected':''}>${r}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>初次投稿日期</label>
+                                    <input type="date" name="submitDate" value="${paper.submitDate || ''}">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:12px; margin-bottom:0;">
+                                <label>所有作者 (按署名顺序)</label>
+                                <input type="text" name="authors" value="${paper.authors || ''}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>当前状态</label>
+                                <select name="status">
+                                    ${STATUS_OPTIONS.map(s => `<option value="${s}" ${paper.status===s?'selected':''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>备注说明 (可选)</label>
+                            <textarea name="notes" rows="3">${paper.notes || ''}</textarea>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeModal()">取消</button>
+                            <button type="submit" class="primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderJournalModal() {
+        const j = currentModal === 'editJournal' ? targetJournals.find(item => item.id === activeJournalId) : {};
+        return `
+            <div class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>${currentModal === 'editJournal' ? '编辑感兴趣期刊' : '新增感兴趣期刊'}</h3>
+                        <button class="icon-btn" onclick="closeModal()">✕</button>
+                    </div>
+                    <form onsubmit="handleJournalFormSubmit(event)">
+                        <div class="form-group">
+                            <label>期刊全称 / 缩写</label>
+                            <input type="text" name="jName" value="${j.name || ''}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>所属出版社</label>
+                                <select name="jPublisher">
+                                    <option value="">(请选择出版社)</option>
+                                    ${PUBLISHERS.map(pub => `<option value="${pub}" ${j.publisher===pub?'selected':''}>${pub}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>JCR 分区</label>
+                                <select name="jcr">
+                                    <option value="">(请选择)</option>
+                                    <option value="Q1" ${j.jcr==='Q1'?'selected':''}>Q1</option>
+                                    <option value="Q2" ${j.jcr==='Q2'?'selected':''}>Q2</option>
+                                    <option value="Q3" ${j.jcr==='Q3'?'selected':''}>Q3</option>
+                                    <option value="Q4" ${j.jcr==='Q4'?'selected':''}>Q4</option>
+                                    <option value="无/未收录" ${j.jcr==='无/未收录'?'selected':''}>无/未收录</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>中科院分区</label>
+                                <select name="cas">
+                                    <option value="">(请选择)</option>
+                                    <option value="1区" ${j.cas==='1区'?'selected':''}>1区</option>
+                                    <option value="2区" ${j.cas==='2区'?'selected':''}>2区</option>
+                                    <option value="3区" ${j.cas==='3区'?'selected':''}>3区</option>
+                                    <option value="4区" ${j.cas==='4区'?'selected':''}>4区</option>
+                                    <option value="未分区" ${j.cas==='未分区'?'selected':''}>未分区</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>是否开源 (OA)</label>
+                                <select name="isOA">
+                                    <option value="">(请选择)</option>
+                                    <option value="是" ${j.isOA==='是'?'selected':''}>是</option>
+                                    <option value="否" ${j.isOA==='否'?'selected':''}>否</option>
+                                    <option value="混合" ${j.isOA==='混合'?'selected':''}>混合</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>是否允许双通讯</label>
+                                <select name="allowDualCorr">
+                                    <option value="">(请选择)</option>
+                                    <option value="允许" ${j.allowDualCorr==='允许'?'selected':''}>允许</option>
+                                    <option value="不推荐/有限制" ${j.allowDualCorr==='不推荐/有限制'?'selected':''}>不推荐/有限制</option>
+                                    <option value="未知" ${j.allowDualCorr==='未知'?'selected':''}>未知</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>期刊备注 / 审稿经验 (可选)</label>
+                            <textarea name="jNotes" rows="3">${j.notes || ''}</textarea>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeModal()">取消</button>
+                            <button type="submit" class="primary">保存期刊</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderHistoryModal() {
+        const paper = papers.find(p => p.id === activePaperId);
+        return `
+            <div class="modal-overlay">
+                <div class="modal" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>更新进度 / 转投新期刊</h3>
+                        <button class="icon-btn" onclick="closeModal()">✕</button>
+                    </div>
+                    <form onsubmit="handleHistorySubmit(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>更新日期</label>
+                                <input type="date" name="hDate" value="${new Date().toISOString().slice(0,10)}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>最新状态</label>
+                                <select name="hStatus" onchange="document.getElementById('resubmit_section').style.display = this.value==='Rejected' ? 'block' : 'none';">
+                                    ${STATUS_OPTIONS.map(s => `<option value="${s}" ${paper.status===s?'selected':''}>${s}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>进度说明 / 审稿意见 / 拒稿总结 (可选)</label>
+                            <textarea name="hNote" rows="3"></textarea>
+                        </div>
+
+                        <div id="resubmit_section" style="display: none;" class="resubmit-box">
+                            <div class="form-group" style="margin-bottom:8px;">
+                                <label style="color:#4338ca; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                                    <input type="checkbox" name="isResubmit" id="isResubmit" onchange="document.getElementById('new_journal_input').style.display = this.checked ? 'block' : 'none';">
+                                    📦 开启新一轮转投（保留前序所有期刊记录，新建目标期刊轨迹）
+                                </label>
+                            </div>
+                            <div id="new_journal_input" style="display:none; margin-top:8px;">
+                                <label>新目标期刊 / 会议名称</label>
+                                <input type="text" id="journal_input" name="newJournal" placeholder="输入或从下方感兴趣期刊选入...">
+                                ${targetJournals.length > 0 ? `
+                                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">从感兴趣期刊库选择：</div>
+                                    <div class="author-chips">
+                                        ${targetJournals.map(j => `<span class="chip" onclick="selectJournalForForm('${j.name}')">📖 ${j.name}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" onclick="closeModal()">取消</button>
+                            <button type="submit" class="primary">提交更新</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
