@@ -1,6 +1,6 @@
 # 📚 Paper & Journal Progress Tracker
 
-> 一个轻量级、零配置、开箱即用的科研论文投稿进度追踪与感兴趣期刊管理系统。采用纯前端架构，支持多轮转投轨迹追踪、JCR/中科院分区管理及本地 JSON 数据持久化。
+> 一个轻量级、零配置、开箱即用的科研论文投稿进度追踪与感兴趣期刊管理系统。采用纯前端架构，支持多轮转投轨迹追踪、JCR/中科院分区管理及本地数据持久化。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![HTML5](https://img.shields.io/badge/HTML5-Pure%20Vanilla-orange.svg)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -19,7 +19,7 @@
 ## ✨ 核心特性
 
 - 🚀 **零后端依赖**：纯前端 HTML +原生 JavaScript 实现，无需配置服务器或数据库，双击即可本地运行，完美适配 GitHub Pages 托管。
-- 📦 **智能数据加载**：支持**自动检测并加载同目录下的 `papers_data.json`**，也可通过网页端一键导入/导出 JSON 备份文件。
+- 📦 **智能数据加载**：支持**自动检测并加载同目录下的 `paperdata`**，也可通过网页端一键导入/导出备份文件。
 - 🔄 **多轮转投与评审轨迹追踪**：当论文不幸遭遇拒稿并开启新一轮转投时，系统会完整保留前序所有期刊的评审时间线（Round 1, Round 2...），清晰复盘投稿历程。
 - 🏢 **全面的期刊库管理**：
   - 涵盖主流学术出版社（IEEE、Elsevier、Springer Nature、Wiley、Taylor & Francis 等）。
@@ -31,13 +31,13 @@
 ## 🛠️ 快速开始
 
 ### 方法一：直接本地使用
-1. 下载本仓库的 `index.html` 文件。
-2. 在同目录下新建一个 `papers_data.json` 作为默认数据文件（可参考仓库中的 `papers_data.json` 范例）。
-3. 直接双击 `index.html` 即可在浏览器中愉快使用！
+1. 下载本仓库的 `.html` 文件。
+2. 在同目录下新建一个 `paperdata` 作为默认数据文件（可参考仓库中的 `paperdata` 范例）。
+3. 直接双击 `.html` 即可在浏览器中愉快使用！
 
 ### 方法二：部署到 GitHub Pages (公开分享)
 1. Fork 或 Clone 本仓库。
-2. 将 `index.html` 和你的 `papers_data.json` 放在仓库根目录下。
+2. 将 `.html` 和你的 `papers_data` 放在仓库根目录下。
 3. 进入仓库的 **Settings -> Pages**，将 Source 设置为 `main` 分支根目录，点击 Save。
 4. 几秒钟后即可通过 GitHub 提供的链接在线访问你的专属追踪系统！
 
