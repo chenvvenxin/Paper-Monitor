@@ -32,8 +32,8 @@
         .horizontal-filters { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: center; width: 100%; }
         .horizontal-filters select { flex: 1; min-width: 140px; }
 
-        input[type="text"], select, textarea { padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; background: #fff; }
-        input[type="text"]:focus, select:focus, textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
+        input[type="text"], input[type="url"], select, textarea { padding: 8px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; background: #fff; }
+        input[type="text"]:focus, input[type="url"]:focus, select:focus, textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
         .search-input { flex: 1; }
         .filters { display: flex; flex-wrap: wrap; gap: 10px; }
         
@@ -51,9 +51,10 @@
         .badge-container { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
         .card-title { font-size: 16px; font-weight: bold; color: #0f172a; line-height: 1.4; }
         .card-journal { font-size: 13px; color: #4f46e5; font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
-        .card-actions { display: flex; gap: 6px; }
-        .icon-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; border-radius: 4px; }
+        .card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .icon-btn { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; border-radius: 4px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
         .icon-btn:hover { color: #334155; background: #f1f5f9; }
+        .icon-btn.link:hover { color: #4f46e5; background: #eef2ff; }
         .icon-btn.danger:hover { color: #e11d48; background: #ffe4e6; }
         .card-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; font-size: 13px; }
         @media(min-width: 768px) { .card-grid { grid-template-columns: 1fr 1fr; } }
@@ -128,6 +129,12 @@
         setTimeout(() => el.classList.remove('show'), 2600);
     }
 
+    function normalizeUrl(url) {
+        const trimmed = (url || '').trim();
+        if (!trimmed) return '';
+        return /^https?:\/\//i.test(trimmed) ? trimmed : 'https://' + trimmed;
+    }
+
     window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
@@ -135,7 +142,6 @@
         }
     });
 
-    // 页面加载时自动读取同目录下的 JSON 文件
     window.addEventListener('DOMContentLoaded', () => {
         loadDataFile();
     });
@@ -211,7 +217,6 @@
         event.target.value = '';
     }
 
-    // 导出/保存当前最新 JSON 文件
     function saveToFile() {
         const content = JSON.stringify({ papers, targetJournals }, null, 2);
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(content);
@@ -389,6 +394,7 @@
 
         const jData = {
             name: trimmedName,
+            url: form.jUrl ? form.jUrl.value.trim() : '',
             publisher: form.jPublisher.value,
             jcr: form.jcr.value,
             cas: form.cas.value,
@@ -418,7 +424,7 @@
         const newJournal = form.newJournal ? form.newJournal.value.trim() : "";
 
         const entry = { id: Date.now().toString(), date, status: newStatus, note };
-        let resubmittedTo = null;
+        let resubmittedTarget = null;
 
         papers = papers.map(p => {
             if (p.id === activePaperId) {
@@ -432,19 +438,19 @@
                 let updatedJournal = p.journal;
                 let finalStatus = newStatus;
 
-                if (isResubmit && newJournal) {
-                    updatedJournal = newJournal;
-                    // 转投后新一轮的初始状态为 Draft（草稿）
+                if (isResubmit) {
+                    const targetJournal = newJournal || "待定";
+                    updatedJournal = targetJournal;
                     finalStatus = "Draft";
-                    resubmittedTo = newJournal;
+                    resubmittedTarget = targetJournal;
                     rounds.push({
                         roundNum: rounds.length + 1,
-                        journal: newJournal,
+                        journal: targetJournal,
                         history: [{
                             id: (Date.now() + 1).toString(),
                             date,
                             status: "Draft",
-                            note: `转投至新期刊 ${newJournal}${rawNote ? '：' + rawNote : ''}`
+                            note: newJournal ? `转投至 ${newJournal}` : "开启新一轮转投（目标期刊待定）"
                         }]
                     });
                 }
@@ -453,7 +459,7 @@
                     ...p,
                     journal: updatedJournal,
                     status: finalStatus,
-                    notes: isResubmit ? `转投 ${newJournal}。` : (rawNote ? note : p.notes),
+                    notes: isResubmit ? (newJournal ? `转投 ${newJournal}` : "开启新一轮转投") : (rawNote ? note : p.notes),
                     rounds: rounds
                 };
             }
@@ -463,7 +469,7 @@
         closeModal();
         persistLocal();
         render();
-        if (resubmittedTo) showToast(`📦 已转投至 ${resubmittedTo}，当前状态：Draft`);
+        if (resubmittedTarget) showToast(`已开启新一轮转投（${resubmittedTarget}）`);
     }
 
     function openModal(type, id = null) {
@@ -620,12 +626,14 @@
             h += `<div class="empty-state">暂无匹配的感兴趣期刊记录。</div>`;
         } else {
             filteredJournals.forEach(j => {
+                const safeUrl = normalizeUrl(j.url);
                 h += `
                     <div class="journal-card">
                         <div>
                             <div class="journal-card-header">
                                 <div class="journal-title" title="${j.name || '未命名期刊'}">${j.name || '未命名期刊'}</div>
                                 <div class="card-actions" style="margin-top:-4px;">
+                                    ${safeUrl ? `<a class="icon-btn link" href="${safeUrl}" target="_blank" rel="noopener noreferrer" title="直达期刊官网">🔗</a>` : ''}
                                     <button class="icon-btn" onclick="openModal('editJournal', '${j.id}')" title="编辑">✏️</button>
                                     <button class="icon-btn danger" onclick="deleteJournal('${j.id}')" title="删除">🗑️</button>
                                 </div>
@@ -748,6 +756,10 @@
                             <input type="text" id="jName_input" name="jName" value="${j.name || ''}" oninput="checkJournalDuplicate()" placeholder="输入期刊名称，自动检测是否已收录...">
                             <div id="dup_warning" class="dup-warning"></div>
                         </div>
+                        <div class="form-group">
+                            <label>期刊主页链接 (可选)</label>
+                            <input type="text" name="jUrl" value="${j.url || ''}" placeholder="https://...">
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>所属出版社</label>
@@ -845,27 +857,23 @@
                         </div>
 
                         <div class="form-group">
-                            <label>进度说明 / 审稿意见 / 拒稿总结 (可选)</label>
+                            <label>进度说明 / 审稿意见 (可选)</label>
                             <textarea name="hNote" rows="3"></textarea>
                         </div>
 
                         <div id="resubmit_section" style="display: none;" class="resubmit-box">
                             <div class="form-group" style="margin-bottom:8px;">
-                                <label style="color:#4338ca; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                                <label style="color:#4338ca; display:flex; align-items:center; gap:6px; cursor:pointer; margin-bottom:0;">
                                     <input type="checkbox" name="isResubmit" id="isResubmit" onchange="document.getElementById('new_journal_input').style.display = this.checked ? 'block' : 'none';">
-                                    📦 开启新一轮转投（保留前序所有期刊记录，新建目标期刊轨迹）
+                                    开启新一轮转投
                                 </label>
-                                <div style="font-size:11px; color:#64748b; margin-top:4px;">
-                                    转投后新一轮初始状态为 <strong>Draft（草稿）</strong>，待正式投出后再更新为 Submitted。
-                                </div>
                             </div>
                             <div id="new_journal_input" style="display:none; margin-top:8px;">
-                                <label>新目标期刊 / 会议名称</label>
-                                <input type="text" id="journal_input" name="newJournal" placeholder="输入或从下方快捷选入...">
+                                <label>新目标期刊 / 会议（可选，留空为待定）</label>
+                                <input type="text" id="journal_input" name="newJournal" placeholder="可留空，后续再编辑填写">
                                 ${randomJournals.length > 0 ? `
-                                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">快捷选入推荐期刊：</div>
                                     <div class="author-chips">
-                                        ${randomJournals.map(j => `<span class="chip" onclick="selectJournalForForm('${j.name}')">📖 ${j.name}</span>`).join('')}
+                                        ${randomJournals.map(j => `<span class="chip" onclick="selectJournalForForm('${j.name}')">${j.name}</span>`).join('')}
                                     </div>
                                 ` : ''}
                             </div>
